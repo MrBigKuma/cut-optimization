@@ -9,27 +9,6 @@ public class ColumnGenerationSolver {
     private final static int MAX_ITER = 1000;
 
     /**
-     * This func is just for testing
-     */
-    public static void main(String[] args) {
-        // TODO: this problem failed
-        //        double[] prices = new double[] { 6, 1656, 2158, 1458, 546, 734, 646 };
-        //        double[] orders = new double[] { 6, 83, 1065, 565, 556, 565, 556 };
-        final float stockLength = 6000;
-        final List<BarSet> requiredBars = new ArrayList<BarSet>() {{
-            add(new BarSet(1656, 8));
-            add(new BarSet(2158, 10));
-            add(new BarSet(1458, 5));
-        }};
-        final Map<List<BarSet>, Integer> rstMap = solve(requiredBars, stockLength);
-
-        rstMap.keySet().forEach(pattern -> {
-            System.out.print(pattern.stream().map(BarSet::toString).collect(Collectors.joining(", ")));
-            System.out.println(": x" + rstMap.get(pattern));
-        });
-    }
-
-    /**
      * Main solver
      * @param orderSets list of object of order length & order's length
      * @param stockLen raw bar length to cut

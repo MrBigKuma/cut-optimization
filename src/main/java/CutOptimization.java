@@ -3,15 +3,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class Main {
-
-    public static void main(String[] args) {
-        case1();
-        case2();
-        case3();
-        case4();
-    }
-
+public class CutOptimization {
     /**
      * Main calculation
      *
@@ -20,7 +12,7 @@ public class Main {
      * @param requiredBarSetInputs required bar set
      * @return num of require bar
      */
-    private static int calRequiredBar(
+    public static int calRequiredBar(
             final float stockLengthInput,
             final float sawWidthInput,
             List<BarSet> requiredBarSetInputs) {
@@ -41,46 +33,6 @@ public class Main {
         });
 
         return rstMap.values().stream().mapToInt(Integer::intValue).sum();
-    }
-
-    private static void case1() {
-        // Input
-        final float rawBarHeightInput = 1000f;
-        final float sawWidthInput = 1.5f;
-        List<BarSet> requiredBarSetInputs = new ArrayList<BarSet>() {{
-            add(new BarSet(600f, 50));
-            add(new BarSet(200f, 50));
-            add(new BarSet(100f, 10));
-        }};
-
-        int nBar = calRequiredBar(rawBarHeightInput, sawWidthInput, requiredBarSetInputs);
-        System.out.printf("Need %d bar(s) [optimal: 50]", nBar);
-    }
-
-    private static void case2() {
-        // Input
-        final float rawBarHeightInput = 1000f;
-        final float sawWidthInput = 0f;
-        List<BarSet> requiredBarSetInputs = new ArrayList<BarSet>() {{
-            add(new BarSet(600f, 2));
-            add(new BarSet(200f, 4));
-        }};
-
-        int nBar = calRequiredBar(rawBarHeightInput, sawWidthInput, requiredBarSetInputs);
-        System.out.printf("Need %d bar(s) [optimal: 2]", nBar);
-    }
-
-    private static void case3() {
-        // Input
-        final float rawBarHeightInput = 1100f;
-        final float sawWidthInput = 0f;
-        List<BarSet> requiredBarSetInputs = new ArrayList<BarSet>() {{
-            add(new BarSet(500f, 4));
-            add(new BarSet(200f, 12));
-        }};
-
-        int nBar = calRequiredBar(rawBarHeightInput, sawWidthInput, requiredBarSetInputs);
-        System.out.printf("Need %d bar(s) [optimal: 4]\n", nBar);
     }
 
     private static void case4() {
