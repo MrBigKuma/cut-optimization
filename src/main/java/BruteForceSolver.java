@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class BruteForceSolver {
-    public static Pair<Integer, List<List<BarSet>>> optimizeAllBar(List<BarSet> requiredBars, float rawBarHeight) {
+    public static Pair<Integer, List<List<BarSet>>> optimizeAllBar(List<BarSet> requiredBars, float stockLength) {
         if (isEmpty(requiredBars)) {
             return new Pair<>(0, new ArrayList<List<BarSet>>() {{
                 add(new ArrayList<>());
@@ -13,7 +13,7 @@ public class BruteForceSolver {
         }
 
         List<List<BarSet>> possibleOneBarCuts = calPossibleOneBarCuts(
-                0, requiredBars, rawBarHeight);
+                0, requiredBars, stockLength);
 
         //         Print out
         possibleOneBarCuts.forEach(c ->
@@ -44,7 +44,7 @@ public class BruteForceSolver {
                 ));
             }
 
-            Pair<Integer, List<List<BarSet>>> optimizedCut = optimizeAllBar(newRequiredBarSets, rawBarHeight);
+            Pair<Integer, List<List<BarSet>>> optimizedCut = optimizeAllBar(newRequiredBarSets, stockLength);
             //            System.out.println(optimizedCut.fst);
             if (minCut == null || optimizedCut.fst < minCut.fst) {
                 optimizedCut.snd.add(cutBarSets);

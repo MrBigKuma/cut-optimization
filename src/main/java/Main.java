@@ -13,29 +13,31 @@ public class Main {
     }
 
     /**
+     * Main calculation
      *
-     * @param rawBarHeightInput
-     * @param sawWidthInput
-     * @param requiredBarSetInputs
+     * @param stockLengthInput raw bar length in stock
+     * @param sawWidthInput width of saw
+     * @param requiredBarSetInputs required bar set
      * @return num of require bar
      */
     private static int calRequiredBar(
-            final float rawBarHeightInput,
+            final float stockLengthInput,
             final float sawWidthInput,
             List<BarSet> requiredBarSetInputs) {
-        System.out.printf("-----Bar len: %s-----\n", rawBarHeightInput);
+        System.out.printf("-----Bar len: %s-----\n", stockLengthInput);
 
-        // Simplify problem by remove saw width to Cutting Stock Problem (CSP)
-        final float stockLength = rawBarHeightInput + sawWidthInput;
-        List<BarSet> orderSets = requiredBarSetInputs.stream()
+        // Normalize problem by remove saw width to Cutting Stock Problem (CSP)
+        final float stockLength = stockLengthInput + sawWidthInput;
+        final List<BarSet> orderSets = requiredBarSetInputs.stream()
                 .map(barSetIn -> new BarSet(barSetIn.len + sawWidthInput, barSetIn.num))
                 .collect(Collectors.toList());
 
         // Solve the Cutting Stock Problem
         final Map<List<BarSet>, Integer> rstMap = ColumnGenerationSolver.solve(orderSets, stockLength);
+        // Print result
         rstMap.keySet().forEach(pattern -> {
-            System.out.print(pattern.stream().map(BarSet::toString).collect(Collectors.joining(", ")));
-            System.out.println(" ---> x" + rstMap.get(pattern));
+            final String pStr = pattern.stream().map(BarSet::toString).collect(Collectors.joining(", "));
+            System.out.println(pStr + " ---> x" + rstMap.get(pattern));
         });
 
         return rstMap.values().stream().mapToInt(Integer::intValue).sum();

@@ -6,7 +6,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class ColumnGenerationSolver {
-    final static int MAX_ITER = 1000;
+    private final static int MAX_ITER = 1000;
 
     /**
      * This func is just for testing
@@ -15,13 +15,13 @@ public class ColumnGenerationSolver {
         // TODO: this problem failed
         //        double[] prices = new double[] { 6, 1656, 2158, 1458, 546, 734, 646 };
         //        double[] orders = new double[] { 6, 83, 1065, 565, 556, 565, 556 };
-        final float rawBarHeight = 6000;
+        final float stockLength = 6000;
         final List<BarSet> requiredBars = new ArrayList<BarSet>() {{
             add(new BarSet(1656, 8));
             add(new BarSet(2158, 10));
             add(new BarSet(1458, 5));
         }};
-        final Map<List<BarSet>, Integer> rstMap = solve(requiredBars, rawBarHeight);
+        final Map<List<BarSet>, Integer> rstMap = solve(requiredBars, stockLength);
 
         rstMap.keySet().forEach(pattern -> {
             System.out.print(pattern.stream().map(BarSet::toString).collect(Collectors.joining(", ")));
@@ -32,50 +32,52 @@ public class ColumnGenerationSolver {
     /**
      * Main solver
      * @param orderSets list of object of order length & order's length
-     * @param stockLength raw bar length to cut
+     * @param stockLen raw bar length to cut
      * @return Map of cutting pattern and num of them
      */
-    public static Map<List<BarSet>, Integer> solve(final List<BarSet> orderSets, final float stockLength) {
-        final int nOrderType = orderSets.size();
+    public static Map<List<BarSet>, Integer> solve(final List<BarSet> orderSets, final float stockLen) {
+        final int nOrder = orderSets.size();
 
-        double[] prices = new double[nOrderType + 1];
-        double[] orders = new double[nOrderType + 1];
-        prices[0] = nOrderType;
-        orders[0] = nOrderType;
-        for (int i = 0; i < nOrderType; i++) {
+        // Convert to Lp-solve friendly format: [arrayLen, x1, x2, 3...]
+        double[] odLens = new double[nOrder + 1]; // length of order
+        double[] orders = new double[nOrder + 1]; // number of order
+        odLens[0] = nOrder;
+        orders[0] = nOrder;
+        for (int i = 0; i < nOrder; i++) {
             final BarSet barSet = orderSets.get(i);
-            prices[i + 1] = barSet.len;
+            odLens[i + 1] = barSet.len;
             orders[i + 1] = barSet.num;
         }
 
-        double[][] basicMatrix = genBasicMatrix(prices, orders, stockLength);
-        double[] curMinSol = new double[nOrderType];
+        double[][] patternMatrix = genPatternMatrix(odLens, orders, stockLen);
+        double[] curMinSol = new double[nOrder];
 
         int iter;
         for (iter = 0; iter < MAX_ITER; iter++) {
             try {
-                // Master problem
-                double[][] lpRst = calLP(basicMatrix, orders);
+                // Solve Linear Programming problem
+                double[][] lpRst = calLP(patternMatrix, orders);
                 curMinSol = lpRst[0];
                 double[] dualCostVector = lpRst[1];
 
-                // Slave problem
-                double[][] ksRst = calKnapsack(dualCostVector, prices, stockLength);
+                // Solve Knapsack problem
+                double[][] ksRst = calKnapsack(dualCostVector, odLens, stockLen);
                 double reducedCost = ksRst[0][0];
                 double[] newPattern = ksRst[1];
 
-                // TODO: use native optimized variable
+                // TODO: use native optimized variable instead
                 if (reducedCost <= 1) {
                     System.out.println("Optimized");
                     break;
                 }
 
                 // Cal leaving column
-                int leavingColIndex = calLeavingColumn(basicMatrix, newPattern, curMinSol);
+                int leavingColIndex = calLeavingColumn(patternMatrix, newPattern, curMinSol);
                 System.out.println("Leaving column index: " + leavingColIndex);
+
                 // Save new pattern
-                for (int r = 0; r < basicMatrix.length; r++) {
-                    basicMatrix[r][leavingColIndex] = newPattern[r];
+                for (int r = 0; r < patternMatrix.length; r++) {
+                    patternMatrix[r][leavingColIndex] = newPattern[r];
                 }
 
             } catch (LpSolveException e) {
@@ -88,43 +90,44 @@ public class ColumnGenerationSolver {
         }
 
         System.out.println("Optimized pattern: ");
-        for (int r = 0; r < basicMatrix.length; r++) {
+        for (int r = 0; r < patternMatrix.length; r++) {
             // TODO: this output is weird
-            System.out.print(Arrays.toString(basicMatrix[r]));
+            System.out.print(Arrays.toString(patternMatrix[r]));
             System.out.println(": " + curMinSol[r + 1]);
         }
 
-        // -----Round up and optimized for the rest of pattern-----
+        // -----Round up to keep integer part of result-----
         double[] orderLeftovers = new double[orders.length];
         System.arraycopy(orders, 0, orderLeftovers, 0, orders.length);
-        for (int r = 0; r < basicMatrix.length; r++) {
-            double[] row = basicMatrix[r];
+        for (int r = 0; r < patternMatrix.length; r++) {
+            double[] row = patternMatrix[r];
             for (int c = 1; c < row.length; c++) {
                 orderLeftovers[r + 1] -= row[c] * (int) curMinSol[c];
             }
         }
         System.out.println("Leftovers: " + Arrays.toString(orderLeftovers));
 
+        // Optimized for the rest of pattern by BruteForce
         List<BarSet> barSets = new ArrayList<>();
         for (int r = 1; r < orderLeftovers.length; r++) {
             if (orderLeftovers[r] != 0f) {
-                BarSet barSet = new BarSet((float) prices[r], (int) orderLeftovers[r]);
+                BarSet barSet = new BarSet((float) odLens[r], (int) orderLeftovers[r]);
                 barSets.add(barSet);
             }
         }
-        Pair<Integer, List<List<BarSet>>> leftoverRst = BruteForceSolver.optimizeAllBar(barSets, (float) stockLength);
+        Pair<Integer, List<List<BarSet>>> leftoverRst = BruteForceSolver.optimizeAllBar(barSets, stockLen);
         System.out.println("Leftover patterns:");
-        for (List<BarSet> barsets : leftoverRst.snd) {
-            System.out.println(Arrays.toString(barsets.toArray()));
+        for (List<BarSet> bSets : leftoverRst.snd) {
+            System.out.println(Arrays.toString(bSets.toArray()));
         }
 
         // Prepare result
         final Map<List<BarSet>, Integer> rstMap = new HashMap<>();
-        for (int c = 1; c < nOrderType + 1; c++) {
+        for (int c = 1; c < nOrder + 1; c++) {
             List<BarSet> pattern = new ArrayList<>();
-            for (int r = 0; r < nOrderType; r++) {
-                if (basicMatrix[r][c] > 0f) {
-                    pattern.add(new BarSet((float) prices[r + 1], (int) basicMatrix[r][c]));
+            for (int r = 0; r < nOrder; r++) {
+                if (patternMatrix[r][c] > 0f) {
+                    pattern.add(new BarSet((float) odLens[r + 1], (int) patternMatrix[r][c]));
                 }
             }
             rstMap.put(pattern, (int) curMinSol[c]);
@@ -135,20 +138,28 @@ public class ColumnGenerationSolver {
         return rstMap;
     }
 
-    private static double[][] genBasicMatrix(double[] prices, double[] orders, double stockLength) {
+    private static double[][] genPatternMatrix(double[] orLens, double[] orders, double stockLength) {
         double[][] basicMatrix = new double[orders.length - 1][orders.length];
         System.out.println("First pattern: ");
         for (int r = 1; r < orders.length; r++) {
             basicMatrix[r - 1] = new double[orders.length];
-            basicMatrix[r - 1][r] = Math.floor(stockLength / prices[r]);
+            basicMatrix[r - 1][r] = Math.floor(stockLength / orLens[r]);
             basicMatrix[r - 1][0] = orders.length - 1;
 
             System.out.println(Arrays.toString(basicMatrix[r - 1]));
-
         }
         return basicMatrix;
     }
 
+    /**
+     *
+     * @param basicMatrix the coefficient matrix of constraints
+     * @param orders
+     * @return Array[2][m+1]
+     * First row is just reduced cost
+     * Second row is dual cost vector
+     * @throws LpSolveException
+     */
     private static double[][] calLP(double[][] basicMatrix, double[] orders) throws LpSolveException {
         int nVar = basicMatrix.length;
         // Create a problem with 4 variables and 0 constraints
@@ -161,7 +172,7 @@ public class ColumnGenerationSolver {
         }
 
         // set objective function
-        double[] minCoef = new double[nVar + 1];
+        double[] minCoef = new double[nVar + 1]; // coefficients
         Arrays.fill(minCoef, 1);
         minCoef[0] = nVar;
         solver.setObjFn(minCoef);
@@ -196,7 +207,7 @@ public class ColumnGenerationSolver {
         return rst;
     }
 
-    private static double[][] calKnapsack(double[] objArr, double[] prices, double stockLength) throws LpSolveException {
+    private static double[][] calKnapsack(double[] objArr, double[] prices, double stockLen) throws LpSolveException {
         int nVar = objArr.length - 1;
 
         // Create a problem with 4 variables and 0 constraints
@@ -204,7 +215,7 @@ public class ColumnGenerationSolver {
         solver.setVerbose(LpSolve.CRITICAL);
 
         // add constraints
-        solver.addConstraint(prices, LpSolve.LE, stockLength);
+        solver.addConstraint(prices, LpSolve.LE, stockLen);
         // objArr.length is equal to nCol + 1
         for (int c = 1; c <= nVar; c++) {
             solver.setInt(c, true);
