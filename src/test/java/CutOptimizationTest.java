@@ -2,6 +2,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -62,5 +63,23 @@ public class CutOptimizationTest {
         final int nBar = CutOptimization.calRequiredBar(rawBarHeightInput, sawWidthInput, requiredBarSetInputs);
 
         assertThat(nBar, is(4));
+    }
+
+    @Test
+    public void solve_WithBigComplexCase_ExpectOptimal() throws Exception {
+        final double rawBarHeightInput = 6000d;
+        final double sawWidthInput = 0d;
+        final List<BarSet> requiredBarSetInputs = Arrays.asList(
+                new BarSet(2158d, 1065),
+                new BarSet(1656d, 83),
+                new BarSet(1458d, 565),
+                new BarSet(734d, 565),
+                new BarSet(646d, 556),
+                new BarSet(546d, 556)
+        );
+        final int nBar = CutOptimization.calRequiredBar(rawBarHeightInput, sawWidthInput, requiredBarSetInputs);
+
+        // Simple Cutting software get 747!!! We are better
+        assertThat(nBar, is(738));
     }
 }

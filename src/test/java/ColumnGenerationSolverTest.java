@@ -16,7 +16,7 @@ public class ColumnGenerationSolverTest {
 
     @Test
     public void solve_WithSimpleCase_ExpectOptimal() throws Exception {
-        final float stockLength = 6000;
+        final double stockLength = 6000;
         final List<BarSet> requiredBars = Arrays.asList(
                 new BarSet(1656d, 8),
                 new BarSet(2158d, 10),
@@ -24,7 +24,7 @@ public class ColumnGenerationSolverTest {
         );
         final Map<List<BarSet>, Integer> rstMap = ColumnGenerationSolver.solve(requiredBars, stockLength);
 
-        int nBarRst = rstMap.values().stream().mapToInt(Integer::intValue).sum();
+        final int nBarRst = rstMap.values().stream().mapToInt(Integer::intValue).sum();
         assertThat(nBarRst, is(8));
     }
 
@@ -32,7 +32,7 @@ public class ColumnGenerationSolverTest {
     public void solve_WithBigCase_ExpectOptimal() throws Exception {
         //        double[] prices = new double[] { 6, 1656, 2158, 1458, 546, 734, 646 };
         //        double[] orders = new double[] { 6, 83, 1065, 565, 556, 565, 556 };
-        final float stockLength = 100;
+        final double stockLength = 100;
         final List<BarSet> requiredBars = Arrays.asList(
                 new BarSet(45d, 97),
                 new BarSet(36d, 610),
@@ -41,7 +41,7 @@ public class ColumnGenerationSolverTest {
         );
         final Map<List<BarSet>, Integer> rstMap = ColumnGenerationSolver.solve(requiredBars, stockLength);
 
-        int nBarRst = rstMap.values().stream().mapToInt(Integer::intValue).sum();
+        final int nBarRst = rstMap.values().stream().mapToInt(Integer::intValue).sum();
         assertThat(nBarRst, is(453));
     }
 }

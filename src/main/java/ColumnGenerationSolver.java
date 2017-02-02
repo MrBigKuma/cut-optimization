@@ -4,7 +4,7 @@ import lpsolve.LpSolveException;
 import java.util.*;
 
 public class ColumnGenerationSolver {
-    private final static int MAX_ITER = 1000;
+    private final static int MAX_ITER = 100;
 
     /**
      * Main solver
@@ -35,8 +35,13 @@ public class ColumnGenerationSolver {
             try {
                 // Solve Linear Programming problem
                 double[][] lpRst = calLP(patternMat, odNumVec);
-                minPatternNums = lpRst[0];
-                double[] dualCostVector = lpRst[1];
+                final int solFlag = (int) lpRst[0][0];
+                if (solFlag != LpSolve.OPTIMAL) {
+                    System.out.println("Can't solve anymore");
+                    break;
+                }
+                minPatternNums = lpRst[1];
+                double[] dualCostVector = lpRst[2];
 
                 // Solve Knapsack problem
                 double[][] ksRst = calKnapsack(dualCostVector, odLenVec, stockLen);
@@ -50,8 +55,15 @@ public class ColumnGenerationSolver {
                 }
 
                 // Cal leaving column
-                int leavingColIndex = calLeavingColumn(patternMat, newPattern, minPatternNums);
-                //                System.out.println("Leaving column index: " + leavingColIndex);
+                int lcRst[] = calLeavingColumn(patternMat, newPattern, minPatternNums);
+                int lcSolFlag = lcRst[0];
+                int leavingColIndex = lcRst[1];
+                // System.out.println("Leaving column index: " + leavingColIndex);
+
+                if (lcSolFlag != LpSolve.OPTIMAL) {
+                    System.out.println("Can't solve anymore");
+                    break;
+                }
 
                 // Save new pattern
                 for (int r = 0; r < patternMat.length; r++) {
@@ -83,7 +95,7 @@ public class ColumnGenerationSolver {
                 remainOdNumVec[r + 1] -= row[c] * Math.floor(minPatternNums[c]);
             }
         }
-        // System.out.println("Leftovers: " + Arrays.toString(remainOdNumVec));
+        //        System.out.println("Leftovers: " + Arrays.toString(remainOdNumVec));
 
         // Optimized for the rest of pattern by BruteForce
         final List<BarSet> remainOrderSets = new ArrayList<>();
@@ -143,12 +155,14 @@ public class ColumnGenerationSolver {
     }
 
     /**
-     * @param basicMatrix the coefficient matrix of constraints
+     * @param basicMatrixIn the coefficient matrix of constraints
      * @return Array[2][m+1]
      * First row is just reduced cost
      * Second row is dual cost vector
      */
-    private static double[][] calLP(double[][] basicMatrix, double[] orderNumVec) throws LpSolveException {
+    private static double[][] calLP(double[][] basicMatrixIn, double[] orderNumVec) throws LpSolveException {
+        double[][] basicMatrix = cloneMatrix(basicMatrixIn); // LP solve modifies our input array
+
         int nVar = basicMatrix.length;
         LpSolve solver = LpSolve.makeLp(0, nVar);
         solver.setVerbose(LpSolve.CRITICAL);
@@ -166,7 +180,7 @@ public class ColumnGenerationSolver {
         solver.setMinim();
 
         // solve the problem
-        solver.solve();
+        final int solFlag = solver.solve();
 
         // print solution
         //        System.out.println("Value of objective function: " + solver.getObjective());
@@ -187,17 +201,19 @@ public class ColumnGenerationSolver {
         solver.deleteLp();
 
         // Prepare result
-        double[][] rst = new double[2][nVar + 1];
-        System.arraycopy(rhs, 0, rst[0], 1, nVar);
-        System.arraycopy(duals, 1, rst[1], 1, nVar);
-        rst[0][0] = nVar;
+        double[][] rst = new double[3][nVar + 1];
+        rst[0][0] = solFlag;
         rst[1][0] = nVar;
+        System.arraycopy(rhs, 0, rst[1], 1, nVar);
+        rst[2][0] = nVar;
+        System.arraycopy(duals, 1, rst[2], 1, nVar);
         return rst;
     }
 
     /**
      * Solve Knapsack problem
-     * @param objArr objective array
+     *
+     * @param objArr      objective array
      * @param orderLenVec order len
      * @param stockLen
      * @return 1st: reduced cost, 2nd new pattern to enter
@@ -219,7 +235,7 @@ public class ColumnGenerationSolver {
         solver.setMaxim();
 
         // solve the problem
-        solver.solve();
+        final int solFlag = solver.solve();
 
         // print solution
         double reducedCost = solver.getObjective();
@@ -241,9 +257,12 @@ public class ColumnGenerationSolver {
 
     /**
      * Calculate which column index should be replaced
+     *
      * @return index of the column that will leave the pattern matrix
      */
-    private static int calLeavingColumn(double[][] basicMatrix, double[] newPattern, double[] rhs) throws LpSolveException {
+    private static int[] calLeavingColumn(double[][] basicMatrixIn, double[] newPattern, double[] rhs) throws LpSolveException {
+        double[][] basicMatrix = cloneMatrix(basicMatrixIn); // LP solve modifies our input array
+
         int nVar = basicMatrix.length;
         LpSolve solver = LpSolve.makeLp(0, nVar);
         solver.setVerbose(LpSolve.CRITICAL);
@@ -261,7 +280,7 @@ public class ColumnGenerationSolver {
         solver.setMinim();
 
         // solve the problem
-        solver.solve();
+        final int solFlag = solver.solve();
 
         // print solution
         double[] var = solver.getPtrVariables();
@@ -281,6 +300,15 @@ public class ColumnGenerationSolver {
 
         // delete the problem and free memory
         solver.deleteLp();
-        return minIndex + 1;
+
+        return new int[] { solFlag, minIndex + 1 };
+    }
+
+    private static double[][] cloneMatrix(double[][] mat) {
+        final double[][] clone = new double[mat.length][mat[0].length];
+        for (int r = 0; r < mat.length; r++) {
+            System.arraycopy(mat[r], 0, clone[r], 0, mat[r].length);
+        }
+        return clone;
     }
 }
