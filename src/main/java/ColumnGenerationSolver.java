@@ -51,7 +51,7 @@ public class ColumnGenerationSolver {
 
                 // Cal leaving column
                 int leavingColIndex = calLeavingColumn(patternMatrix, newPattern, curMinSol);
-                System.out.println("Leaving column index: " + leavingColIndex);
+                //                System.out.println("Leaving column index: " + leavingColIndex);
 
                 // Save new pattern
                 for (int r = 0; r < patternMatrix.length; r++) {
@@ -67,12 +67,12 @@ public class ColumnGenerationSolver {
             System.out.println("Maximum of iter reached! Solution is not quite optimized");
         }
 
-        System.out.println("Optimized pattern: ");
-        for (int r = 0; r < patternMatrix.length; r++) {
-            // TODO: this output is weird
-            System.out.print(Arrays.toString(patternMatrix[r]));
-            System.out.println(": " + curMinSol[r + 1]);
-        }
+        //        System.out.println("Optimized pattern: ");
+        //        for (int r = 0; r < patternMatrix.length; r++) {
+        //            // TODO: this output is weird
+        //            System.out.print(Arrays.toString(patternMatrix[r]));
+        //            System.out.println(": " + curMinSol[r + 1]);
+        //        }
 
         // -----Round up to keep integer part of result-----
         double[] orderLeftovers = new double[orders.length];
@@ -83,7 +83,7 @@ public class ColumnGenerationSolver {
                 orderLeftovers[r + 1] -= row[c] * (int) curMinSol[c];
             }
         }
-        System.out.println("Leftovers: " + Arrays.toString(orderLeftovers));
+        //        System.out.println("Leftovers: " + Arrays.toString(orderLeftovers));
 
         // Optimized for the rest of pattern by BruteForce
         List<BarSet> barSets = new ArrayList<>();
@@ -94,10 +94,10 @@ public class ColumnGenerationSolver {
             }
         }
         Pair<Integer, List<List<BarSet>>> leftoverRst = BruteForceSolver.optimizeAllBar(barSets, stockLen);
-        System.out.println("Leftover patterns:");
-        for (List<BarSet> bSets : leftoverRst.snd) {
-            System.out.println(Arrays.toString(bSets.toArray()));
-        }
+        //        System.out.println("Leftover patterns:");
+        //        for (List<BarSet> bSets : leftoverRst.snd) {
+        //            System.out.println(Arrays.toString(bSets.toArray()));
+        //        }
 
         // Prepare result
         final Map<List<BarSet>, Integer> rstMap = new HashMap<>();
@@ -118,13 +118,13 @@ public class ColumnGenerationSolver {
 
     private static double[][] genPatternMatrix(double[] orLens, double[] orders, double stockLength) {
         double[][] basicMatrix = new double[orders.length - 1][orders.length];
-        System.out.println("First pattern: ");
+        //        System.out.println("First pattern: ");
         for (int r = 1; r < orders.length; r++) {
             basicMatrix[r - 1] = new double[orders.length];
             basicMatrix[r - 1][r] = Math.floor(stockLength / orLens[r]);
             basicMatrix[r - 1][0] = orders.length - 1;
 
-            System.out.println(Arrays.toString(basicMatrix[r - 1]));
+            //            System.out.println(Arrays.toString(basicMatrix[r - 1]));
         }
         return basicMatrix;
     }
@@ -159,19 +159,19 @@ public class ColumnGenerationSolver {
         solver.solve();
 
         // print solution
-        System.out.println("Value of objective function: " + solver.getObjective());
+        //        System.out.println("Value of objective function: " + solver.getObjective());
         double[] rhs = solver.getPtrVariables();
-        for (int i = 0; i < rhs.length; i++) {
-            System.out.println("rhs[" + i + "] = " + rhs[i]);
-        }
+        //        for (int i = 0; i < rhs.length; i++) {
+        //            System.out.println("rhs[" + i + "] = " + rhs[i]);
+        //        }
 
-        System.out.println("Dual cost vector");
+        //        System.out.println("Dual cost vector");
         double[] duals = solver.getPtrDualSolution();
-        for (int i = 1; i <= nVar; i++) {
-            double d = duals[i];
-            System.out.println("y[" + i + "] = " + d);
-        }
-        solver.printDuals();
+        //        for (int i = 1; i <= nVar; i++) {
+        //            double d = duals[i];
+        //            System.out.println("y[" + i + "] = " + d);
+        //        }
+        //        solver.printDuals();
 
         // delete the problem and free memory
         solver.deleteLp();
@@ -207,11 +207,11 @@ public class ColumnGenerationSolver {
 
         // print solution
         double reducedCost = solver.getObjective();
-        System.out.println("Reduced cost: " + reducedCost);
+        //        System.out.println("Reduced cost: " + reducedCost);
         double[] var = solver.getPtrVariables();
-        for (int i = 0; i < var.length; i++) {
-            System.out.println("Pattern [" + i + "] = " + var[i]);
-        }
+        //        for (int i = 0; i < var.length; i++) {
+        //            System.out.println("Pattern [" + i + "] = " + var[i]);
+        //        }
 
         // delete the problem and free memory
         solver.deleteLp();
@@ -245,11 +245,10 @@ public class ColumnGenerationSolver {
         solver.solve();
 
         // print solution
-        //        System.out.println("Value of objective function: " + solver.getObjective());
         double[] var = solver.getPtrVariables();
-        for (int i = 0; i < var.length; i++) {
-            System.out.println("Value of var[" + i + "] = " + var[i]);
-        }
+        //        for (int i = 0; i < var.length; i++) {
+        //            System.out.println("Value of var[" + i + "] = " + var[i]);
+        //        }
 
         // leaving
         int minIndex = -1;

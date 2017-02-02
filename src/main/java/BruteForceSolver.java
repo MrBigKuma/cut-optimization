@@ -1,31 +1,27 @@
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class BruteForceSolver {
     public static Pair<Integer, List<List<BarSet>>> optimizeAllBar(List<BarSet> requiredBars, float stockLength) {
         if (isEmpty(requiredBars)) {
-            return new Pair<>(0, new ArrayList<List<BarSet>>() {{
-                add(new ArrayList<>());
-            }});
+            ArrayList<List<BarSet>> bs = new ArrayList<>();
+            bs.add(new ArrayList<>());
+            return new Pair<>(0, bs);
         }
 
-        List<List<BarSet>> possibleOneBarCuts = calPossibleOneBarCuts(
-                0, requiredBars, stockLength);
+        final List<List<BarSet>> possibleOneBarCuts = calPossibleOneBarCuts(0, requiredBars, stockLength);
 
-        //         Print out
-        possibleOneBarCuts.forEach(c ->
-                System.out.println(
-                        c.stream().map(BarSet::toString)
-                                .collect(Collectors.joining(", "))
-                )
-        );
-        if (possibleOneBarCuts.size() == 0) {
-            System.out.printf("%d, %d\n", requiredBars.size(), possibleOneBarCuts.size());
-            System.out.println(requiredBars.stream().map(BarSet::toString).collect(
-                    Collectors.joining(", ")
-            ));
-        }
+        // ---------Print out----------
+        //        possibleOneBarCuts.forEach(c -> System.out.println(c.stream()
+        //                .map(BarSet::toString)
+        //                .collect(Collectors.joining(", "))));
+        //        if (possibleOneBarCuts.size() == 0) {
+        //            System.out.printf("%d, %d\n", requiredBars.size(), possibleOneBarCuts.size());
+        //            System.out.println(requiredBars.stream()
+        //                    .map(BarSet::toString)
+        //                    .collect(Collectors.joining(", ")));
+        //        }
+
         Pair<Integer, List<List<BarSet>>> minCut = null;
         for (int iCut = 0; iCut < possibleOneBarCuts.size(); iCut++) {
             List<BarSet> cutBarSets = possibleOneBarCuts.get(iCut);
@@ -60,9 +56,7 @@ public class BruteForceSolver {
             int curBarIndex,
             List<BarSet> barSets,
             float barHeight) {
-        //        System.out.printf("calPossibleOneBarCuts(%d, %d, %f) \n",
-        //                curBarIndex, barSets.size(), barHeight);
-        List<List<BarSet>> possibleBarCuts = new ArrayList<>();
+        final List<List<BarSet>> possibleBarCuts = new ArrayList<>();
 
         boolean canCut = barSets.stream()
                 .anyMatch(barSet -> barSet.num > 0 && barSet.len <= barHeight);
@@ -80,14 +74,11 @@ public class BruteForceSolver {
         int maxBarNum = minInt((int) (barHeight / curBarSet.len), curBarSet.num);
         for (int i = 0; i <= maxBarNum; i++) {
 
-            List<BarSet> newBarSets = new ArrayList<BarSet>();
+            final List<BarSet> newBarSets = new ArrayList<>();
             newBarSets.addAll(barSets);
-            newBarSets.set(curBarIndex, new BarSet(
-                    curBarSet.len,
-                    curBarSet.num - i
-            ));
+            newBarSets.set(curBarIndex, new BarSet(curBarSet.len, curBarSet.num - i));
 
-            List<List<BarSet>> subBarCuts = calPossibleOneBarCuts(
+            final List<List<BarSet>> subBarCuts = calPossibleOneBarCuts(
                     curBarIndex + 1, newBarSets, barHeight - curBarSet.len * i);
 
             final int barNum = i;
@@ -99,10 +90,7 @@ public class BruteForceSolver {
     }
 
     private static int minInt(int a, int b) {
-        if (a > b) {
-            return b;
-        }
-        return a;
+        return a > b ? b : a;
     }
 
     private static boolean isEmpty(List<BarSet> barSets) {
