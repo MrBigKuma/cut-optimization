@@ -30,8 +30,6 @@ public class ColumnGenerationSolverTest {
 
     @Test
     public void solve_WithBigCase_ExpectOptimal() throws Exception {
-        //        double[] prices = new double[] { 6, 1656, 2158, 1458, 546, 734, 646 };
-        //        double[] orders = new double[] { 6, 83, 1065, 565, 556, 565, 556 };
         final double stockLength = 100;
         final List<BarSet> requiredBars = Arrays.asList(
                 new BarSet(45d, 97),

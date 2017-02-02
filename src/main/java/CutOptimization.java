@@ -6,9 +6,9 @@ public class CutOptimization {
     /**
      * Main calculation
      *
-     * @param stockLengthInput     raw bar length in stock
-     * @param sawWidthInput        width of saw
-     * @param orderSetInputs required bar set
+     * @param stockLengthInput raw bar length in stock
+     * @param sawWidthInput    width of saw
+     * @param orderSetInputs   required bar set
      * @return num of require bar
      */
     public static int calRequiredBar(
@@ -27,12 +27,12 @@ public class CutOptimization {
         final Map<List<BarSet>, Integer> rstMap = ColumnGenerationSolver.solve(orderSets, stockLength);
 
         // Convert problem back to before normalized
-        rstMap.keySet().forEach(ptrn -> ptrn.forEach(b->b.len -= sawWidthInput));
+        rstMap.keySet().forEach(ptrn -> ptrn.forEach(b -> b.len -= sawWidthInput));
 
         // Print result
         rstMap.keySet().forEach(pattern -> {
             final String pStr = pattern.stream().map(BarSet::toString).collect(Collectors.joining(", "));
-            System.out.printf("(x%d): %s\n", rstMap.get(pattern),pStr);
+            System.out.printf("(x%d): %s\n", rstMap.get(pattern), pStr);
         });
 
         return rstMap.values().stream().mapToInt(Integer::intValue).sum();

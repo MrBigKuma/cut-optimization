@@ -17,7 +17,7 @@ public class ColumnGenerationSolver {
     public static Map<List<BarSet>, Integer> solve(final List<BarSet> orderSets, final double stockLen) {
         final int nOrder = orderSets.size();
 
-        // Convert to Lp-solve friendly format: [arrayLen, x1, x2, 3...]
+        // Convert to Lp solve-friendly format: [arrayLen, x1, x2, 3...]
         double[] odLenVec = new double[nOrder + 1]; // order length vector
         double[] odNumVec = new double[nOrder + 1]; // order number vector
         odLenVec[0] = nOrder;
@@ -82,7 +82,6 @@ public class ColumnGenerationSolver {
 
         //        System.out.println("Optimized pattern: ");
         //        for (int r = 0; r < patternMat.length; r++) {
-        //            // TODO: this output is weird
         //            System.out.print(Arrays.toString(patternMat[r]));
         //            System.out.println(": " + minPatternNums[r + 1]);
         //        }
@@ -153,13 +152,10 @@ public class ColumnGenerationSolver {
     private static double[][] genPatternMatrix(double[] odLenVec, double[] odNumVec, double stockLen) {
         final int vecLen = odNumVec.length;
         final double[][] basicMatrix = new double[vecLen - 1][vecLen];
-        //        System.out.println("First pattern: ");
         for (int r = 1; r < vecLen; r++) {
             basicMatrix[r - 1] = new double[vecLen];
             basicMatrix[r - 1][r] = Math.floor(stockLen / odLenVec[r]);
             basicMatrix[r - 1][0] = vecLen - 1;
-
-            //            System.out.println(Arrays.toString(basicMatrix[r - 1]));
         }
         return basicMatrix;
     }
@@ -192,20 +188,9 @@ public class ColumnGenerationSolver {
         // solve the problem
         final int solFlag = solver.solve();
 
-        // print solution
-        //        System.out.println("Value of objective function: " + solver.getObjective());
+        // solution
         double[] rhs = solver.getPtrVariables();
-        //        for (int i = 0; i < rhs.length; i++) {
-        //            System.out.println("rhs[" + i + "] = " + rhs[i]);
-        //        }
-
-        //        System.out.println("Dual cost vector");
         double[] duals = solver.getPtrDualSolution();
-        //        for (int i = 1; i <= nVar; i++) {
-        //            double d = duals[i];
-        //            System.out.println("y[" + i + "] = " + d);
-        //        }
-        //        solver.printDuals();
 
         // delete the problem and free memory
         solver.deleteLp();
@@ -247,13 +232,9 @@ public class ColumnGenerationSolver {
         // solve the problem
         final int solFlag = solver.solve();
 
-        // print solution
+        // solution
         double reducedCost = solver.getObjective();
-        //        System.out.println("Reduced cost: " + reducedCost);
         double[] var = solver.getPtrVariables();
-        //        for (int i = 0; i < var.length; i++) {
-        //            System.out.println("Pattern [" + i + "] = " + var[i]);
-        //        }
 
         // delete the problem and free memory
         solver.deleteLp();
@@ -292,13 +273,10 @@ public class ColumnGenerationSolver {
         // solve the problem
         final int solFlag = solver.solve();
 
-        // print solution
-        double[] var = solver.getPtrVariables();
-        //        for (int i = 0; i < var.length; i++) {
-        //            System.out.println("Value of var[" + i + "] = " + var[i]);
-        //        }
+        // solution
+        final double[] var = solver.getPtrVariables();
 
-        // leaving
+        // leaving column
         int minIndex = -1;
         double minVal = Double.MAX_VALUE;
         for (int i = 0; i < var.length; i++) {

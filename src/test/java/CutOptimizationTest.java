@@ -2,7 +2,6 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -67,6 +66,7 @@ public class CutOptimizationTest {
 
     @Test
     public void solve_WithBigComplexCase_ExpectOptimal() throws Exception {
+        // Input
         final double rawBarHeightInput = 6000d;
         final double sawWidthInput = 0d;
         final List<BarSet> requiredBarSetInputs = Arrays.asList(
