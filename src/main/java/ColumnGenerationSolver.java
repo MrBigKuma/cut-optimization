@@ -2,6 +2,7 @@ import lpsolve.LpSolve;
 import lpsolve.LpSolveException;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ColumnGenerationSolver {
     private final static int MAX_ITER = 100;
@@ -109,7 +110,16 @@ public class ColumnGenerationSolver {
         if (remainOrderSets.size() > 0) {
             // Sort DESC
             remainOrderSets.sort((a, b) -> b.len.compareTo(a.len));
+
+            // Solve
             remainRst = BruteForceSolver.solve(remainOrderSets, stockLen);
+
+            // Remove BarSets in patterns that have num = 0
+            for (int i = 0; i < remainRst.snd.size(); i++) {
+                final List<BarSet> ptrn = remainRst.snd.get(i);
+                final List<BarSet> trimPtrn = ptrn.stream().filter(b -> b.num > 0).collect(Collectors.toList());
+                remainRst.snd.set(i, trimPtrn);
+            }
         }
         //        System.out.println("Leftover patterns:");
         //        for (List<BarSet> bSets : remainRst.snd) {
