@@ -1,7 +1,7 @@
 import java.util.Objects;
 
 /**
- * Copy implementation from
+ * Copy implementation from javac. Just an util func
  *
  * @param <A>
  * @param <B>

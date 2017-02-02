@@ -1,3 +1,6 @@
+/**
+ * Object to hold bar len and its number
+ */
 public class BarSet {
     public Double len;
     public Integer num;

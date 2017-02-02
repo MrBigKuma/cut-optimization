@@ -8,22 +8,22 @@ public class CutOptimization {
      *
      * @param stockLengthInput     raw bar length in stock
      * @param sawWidthInput        width of saw
-     * @param requiredBarSetInputs required bar set
+     * @param orderSetInputs required bar set
      * @return num of require bar
      */
     public static int calRequiredBar(
             final double stockLengthInput,
             final double sawWidthInput,
-            List<BarSet> requiredBarSetInputs) {
+            List<BarSet> orderSetInputs) {
         System.out.printf("-----Bar len: %s-----\n", stockLengthInput);
 
         // Normalize problem by remove saw width to Cutting Stock Problem (CSP)
         final double stockLength = stockLengthInput + sawWidthInput;
-        final List<BarSet> orderSets = requiredBarSetInputs.stream()
+        final List<BarSet> orderSets = orderSetInputs.stream()
                 .map(barSetIn -> new BarSet(barSetIn.len + sawWidthInput, barSetIn.num))
                 .collect(Collectors.toList());
 
-        // Solve the Cutting Stock Problem
+        // Solve CSP
         final Map<List<BarSet>, Integer> rstMap = ColumnGenerationSolver.solve(orderSets, stockLength);
 
         // Convert problem back to before normalized

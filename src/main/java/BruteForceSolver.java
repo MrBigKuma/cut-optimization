@@ -6,7 +6,8 @@ public class BruteForceSolver {
      * This recursive generate all possible
      * This is O(2^n) function so it's only feasible for small amount of order
      * OrderSets must be DESC sorted
-     * @param orderSets all orders
+     *
+     * @param orderSets   all orders
      * @param stockLength length of the bar in stock
      * @return a pair of minimum number of  required bar & patterns for each
      */
@@ -21,8 +22,8 @@ public class BruteForceSolver {
         // Generate all possible patterns
         final List<List<BarSet>> possiblePatterns = calPossibleCutsFor1Stock(0, orderSets, stockLength);
 
-        // With each pattern, recursive solve the problem with leftover orders
-        Pair<Integer, List<List<BarSet>>> minCut = null;
+        // With each pattern, recursive solve the problem with remain orders
+        Pair<Integer, List<List<BarSet>>> minPattern = null;
         for (List<BarSet> pattern : possiblePatterns) {
             final List<BarSet> remainOrderSets = new ArrayList<>();
             for (int iBar = 0; iBar < orderSets.size(); iBar++) {
@@ -34,53 +35,52 @@ public class BruteForceSolver {
             }
 
             // Recursive solve
-            Pair<Integer, List<List<BarSet>>> optimizedCut = solve(remainOrderSets, stockLength);
+            final Pair<Integer, List<List<BarSet>>> optimizedPattern = solve(remainOrderSets, stockLength);
 
-            // Check if it new one better then current minimum
-            if (minCut == null || optimizedCut.fst < minCut.fst) {
-                optimizedCut.snd.add(pattern);
-                minCut = new Pair<>(optimizedCut.fst + 1, optimizedCut.snd);
+            // Check if it new one better than current minimum
+            if (minPattern == null || optimizedPattern.fst + 1 < minPattern.fst) {
+                optimizedPattern.snd.add(pattern);
+                minPattern = new Pair<>(optimizedPattern.fst + 1, optimizedPattern.snd);
             }
         }
 
-        return minCut;
+        return minPattern;
     }
 
     /**
-     * This func generate all pattern possible to be fit in one bar
+     * This func generate all possible pattern to be fit in one stock len (or remain stock len)
+     * from the @param{curOrderIndex} to end of orderSets
      */
-    private static List<List<BarSet>> calPossibleCutsFor1Stock(int curBarIndex, List<BarSet> barSets, double stockLen) {
-        final List<List<BarSet>> possibleBarCuts = new ArrayList<>();
+    private static List<List<BarSet>> calPossibleCutsFor1Stock(int curOrderIndex, List<BarSet> orderSets, double stockLen) {
+        final List<List<BarSet>> possiblePatterns = new ArrayList<>();
 
-        boolean canCut = barSets.stream()
-                .anyMatch(barSet -> barSet.num > 0 && barSet.len <= stockLen);
-
+        final boolean canCut = orderSets.stream().anyMatch(barSet -> barSet.num > 0 && barSet.len <= stockLen);
         if (!canCut) {
-            possibleBarCuts.add(new ArrayList<>());
-            return possibleBarCuts;
+            possiblePatterns.add(new ArrayList<>()); // Create array to let father func put bar in
+            return possiblePatterns;
         }
 
-        if (curBarIndex == barSets.size()) {
-            return possibleBarCuts;
+        if (curOrderIndex == orderSets.size()) {
+            return possiblePatterns;
         }
 
-        BarSet curBarSet = barSets.get(curBarIndex);
-        int maxBarNum = minInt((int) (stockLen / curBarSet.len), curBarSet.num);
-        for (int i = 0; i <= maxBarNum; i++) {
+        final BarSet curOrderSet = orderSets.get(curOrderIndex);
+        int maxBarNum = minInt((int) (stockLen / curOrderSet.len), curOrderSet.num);
+        for (int nBar = 0; nBar <= maxBarNum; nBar++) {
+            // Clone current order except the one at current index
+            final List<BarSet> remainOrderSets = new ArrayList<>();
+            remainOrderSets.addAll(orderSets);
+            remainOrderSets.set(curOrderIndex, new BarSet(curOrderSet.len, curOrderSet.num - nBar));
 
-            final List<BarSet> newBarSets = new ArrayList<>();
-            newBarSets.addAll(barSets);
-            newBarSets.set(curBarIndex, new BarSet(curBarSet.len, curBarSet.num - i));
+            final List<List<BarSet>> subPatterns = calPossibleCutsFor1Stock(
+                    curOrderIndex + 1, remainOrderSets, stockLen - curOrderSet.len * nBar);
 
-            final List<List<BarSet>> subBarCuts = calPossibleCutsFor1Stock(
-                    curBarIndex + 1, newBarSets, stockLen - curBarSet.len * i);
-
-            final int barNum = i;
-            subBarCuts.forEach(c -> c.add(0, new BarSet(curBarSet.len, barNum)));
-            possibleBarCuts.addAll(subBarCuts);
+            final int barNum = nBar;
+            subPatterns.forEach(c -> c.add(0, new BarSet(curOrderSet.len, barNum)));
+            possiblePatterns.addAll(subPatterns);
         }
 
-        return possibleBarCuts;
+        return possiblePatterns;
     }
 
     private static int minInt(int a, int b) {
