@@ -1,17 +1,16 @@
-import com.sun.tools.javac.util.Pair;
 import lpsolve.LpSolve;
 import lpsolve.LpSolveException;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class ColumnGenerationSolver {
     private final static int MAX_ITER = 1000;
 
     /**
      * Main solver
+     *
      * @param orderSets list of object of order length & order's length
-     * @param stockLen raw bar length to cut
+     * @param stockLen  raw bar length to cut
      * @return Map of cutting pattern and num of them
      */
     public static Map<List<BarSet>, Integer> solve(final List<BarSet> orderSets, final float stockLen) {
@@ -131,7 +130,6 @@ public class ColumnGenerationSolver {
     }
 
     /**
-     *
      * @param basicMatrix the coefficient matrix of constraints
      * @param orders
      * @return Array[2][m+1]

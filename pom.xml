@@ -8,12 +8,12 @@
     <artifactId>cutoptimization</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
+
     <dependencies>
-        <dependency>
-            <groupId>com.quantego</groupId>
-            <artifactId>clp-java</artifactId>
-            <version>1.16.10</version>
-        </dependency>
         <dependency>
             <groupId>lpsolve</groupId>
             <artifactId>com.sample</artifactId>
@@ -21,6 +21,9 @@
             <scope>system</scope>
             <systemPath>${project.basedir}/src/main/resources/lpsolve55j.jar</systemPath>
         </dependency>
+
+
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
