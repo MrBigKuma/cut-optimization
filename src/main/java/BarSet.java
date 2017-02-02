@@ -1,8 +1,8 @@
 public class BarSet {
-    public float len;
-    public int num;
+    public Double len;
+    public Integer num;
 
-    public BarSet(float length, int number) {
+    public BarSet(Double length, Integer number) {
         this.len = length;
         this.num = number;
     }

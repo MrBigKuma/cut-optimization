@@ -2,46 +2,43 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BruteForceSolver {
-    public static Pair<Integer, List<List<BarSet>>> optimizeAllBar(List<BarSet> requiredBars, float stockLength) {
-        if (isEmpty(requiredBars)) {
+    /**
+     * This recursive generate all possible
+     * This is O(2^n) function so it's only feasible for small amount of order
+     * OrderSets must be DESC sorted
+     * @param orderSets all orders
+     * @param stockLength length of the bar in stock
+     * @return a pair of minimum number of  required bar & patterns for each
+     */
+    public static Pair<Integer, List<List<BarSet>>> solve(List<BarSet> orderSets, double stockLength) {
+        // Stop if there is no more bar
+        if (isEmpty(orderSets)) {
             ArrayList<List<BarSet>> bs = new ArrayList<>();
-            bs.add(new ArrayList<>());
+            bs.add(new ArrayList<>()); // Create array to let father func put order to
             return new Pair<>(0, bs);
         }
 
-        final List<List<BarSet>> possibleOneBarCuts = calPossibleOneBarCuts(0, requiredBars, stockLength);
+        // Generate all possible patterns
+        final List<List<BarSet>> possiblePatterns = calPossibleCutsFor1Stock(0, orderSets, stockLength);
 
-        // ---------Print out----------
-        //        possibleOneBarCuts.forEach(c -> System.out.println(c.stream()
-        //                .map(BarSet::toString)
-        //                .collect(Collectors.joining(", "))));
-        //        if (possibleOneBarCuts.size() == 0) {
-        //            System.out.printf("%d, %d\n", requiredBars.size(), possibleOneBarCuts.size());
-        //            System.out.println(requiredBars.stream()
-        //                    .map(BarSet::toString)
-        //                    .collect(Collectors.joining(", ")));
-        //        }
-
+        // With each pattern, recursive solve the problem with leftover orders
         Pair<Integer, List<List<BarSet>>> minCut = null;
-        for (int iCut = 0; iCut < possibleOneBarCuts.size(); iCut++) {
-            List<BarSet> cutBarSets = possibleOneBarCuts.get(iCut);
-
-            List<BarSet> newRequiredBarSets = new ArrayList<>();
-            for (int iBar = 0; iBar < requiredBars.size(); iBar++) {
+        for (List<BarSet> pattern : possiblePatterns) {
+            final List<BarSet> remainOrderSets = new ArrayList<>();
+            for (int iBar = 0; iBar < orderSets.size(); iBar++) {
                 int nUsedBar = 0;
-                if (cutBarSets.size() > iBar) {
-                    nUsedBar = cutBarSets.get(iBar).num;
+                if (pattern.size() > iBar) {
+                    nUsedBar = pattern.get(iBar).num;
                 }
-                newRequiredBarSets.add(new BarSet(
-                        requiredBars.get(iBar).len,
-                        requiredBars.get(iBar).num - nUsedBar
-                ));
+                remainOrderSets.add(new BarSet(orderSets.get(iBar).len, orderSets.get(iBar).num - nUsedBar));
             }
 
-            Pair<Integer, List<List<BarSet>>> optimizedCut = optimizeAllBar(newRequiredBarSets, stockLength);
-            //            System.out.println(optimizedCut.fst);
+            // Recursive solve
+            Pair<Integer, List<List<BarSet>>> optimizedCut = solve(remainOrderSets, stockLength);
+
+            // Check if it new one better then current minimum
             if (minCut == null || optimizedCut.fst < minCut.fst) {
-                optimizedCut.snd.add(cutBarSets);
+                optimizedCut.snd.add(pattern);
                 minCut = new Pair<>(optimizedCut.fst + 1, optimizedCut.snd);
             }
         }
@@ -50,16 +47,13 @@ public class BruteForceSolver {
     }
 
     /**
-     * Try different cut until we can't cut any more
+     * This func generate all pattern possible to be fit in one bar
      */
-    private static List<List<BarSet>> calPossibleOneBarCuts(
-            int curBarIndex,
-            List<BarSet> barSets,
-            float barHeight) {
+    private static List<List<BarSet>> calPossibleCutsFor1Stock(int curBarIndex, List<BarSet> barSets, double stockLen) {
         final List<List<BarSet>> possibleBarCuts = new ArrayList<>();
 
         boolean canCut = barSets.stream()
-                .anyMatch(barSet -> barSet.num > 0 && barSet.len <= barHeight);
+                .anyMatch(barSet -> barSet.num > 0 && barSet.len <= stockLen);
 
         if (!canCut) {
             possibleBarCuts.add(new ArrayList<>());
@@ -71,15 +65,15 @@ public class BruteForceSolver {
         }
 
         BarSet curBarSet = barSets.get(curBarIndex);
-        int maxBarNum = minInt((int) (barHeight / curBarSet.len), curBarSet.num);
+        int maxBarNum = minInt((int) (stockLen / curBarSet.len), curBarSet.num);
         for (int i = 0; i <= maxBarNum; i++) {
 
             final List<BarSet> newBarSets = new ArrayList<>();
             newBarSets.addAll(barSets);
             newBarSets.set(curBarIndex, new BarSet(curBarSet.len, curBarSet.num - i));
 
-            final List<List<BarSet>> subBarCuts = calPossibleOneBarCuts(
-                    curBarIndex + 1, newBarSets, barHeight - curBarSet.len * i);
+            final List<List<BarSet>> subBarCuts = calPossibleCutsFor1Stock(
+                    curBarIndex + 1, newBarSets, stockLen - curBarSet.len * i);
 
             final int barNum = i;
             subBarCuts.forEach(c -> c.add(0, new BarSet(curBarSet.len, barNum)));

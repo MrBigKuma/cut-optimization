@@ -18,9 +18,9 @@ public class ColumnGenerationSolverTest {
     public void solve_WithSimpleCase_ExpectOptimal() throws Exception {
         final float stockLength = 6000;
         final List<BarSet> requiredBars = Arrays.asList(
-                new BarSet(1656, 8),
-                new BarSet(2158, 10),
-                new BarSet(1458, 5)
+                new BarSet(1656d, 8),
+                new BarSet(2158d, 10),
+                new BarSet(1458d, 5)
         );
         final Map<List<BarSet>, Integer> rstMap = ColumnGenerationSolver.solve(requiredBars, stockLength);
 
@@ -34,10 +34,10 @@ public class ColumnGenerationSolverTest {
         //        double[] orders = new double[] { 6, 83, 1065, 565, 556, 565, 556 };
         final float stockLength = 100;
         final List<BarSet> requiredBars = Arrays.asList(
-                new BarSet(45, 97),
-                new BarSet(36, 610),
-                new BarSet(31, 395),
-                new BarSet(14, 211)
+                new BarSet(45d, 97),
+                new BarSet(36d, 610),
+                new BarSet(31d, 395),
+                new BarSet(14d, 211)
         );
         final Map<List<BarSet>, Integer> rstMap = ColumnGenerationSolver.solve(requiredBars, stockLength);
 

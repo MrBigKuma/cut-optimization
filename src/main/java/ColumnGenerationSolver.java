@@ -13,7 +13,7 @@ public class ColumnGenerationSolver {
      * @param stockLen  raw bar length to cut
      * @return Map of cutting pattern and num of them
      */
-    public static Map<List<BarSet>, Integer> solve(final List<BarSet> orderSets, final float stockLen) {
+    public static Map<List<BarSet>, Integer> solve(final List<BarSet> orderSets, final double stockLen) {
         final int nOrder = orderSets.size();
 
         // Convert to Lp-solve friendly format: [arrayLen, x1, x2, 3...]
@@ -89,11 +89,14 @@ public class ColumnGenerationSolver {
         List<BarSet> barSets = new ArrayList<>();
         for (int r = 1; r < orderLeftovers.length; r++) {
             if (orderLeftovers[r] != 0f) {
-                BarSet barSet = new BarSet((float) odLens[r], (int) orderLeftovers[r]);
+                BarSet barSet = new BarSet(odLens[r], (int) orderLeftovers[r]);
                 barSets.add(barSet);
             }
         }
-        Pair<Integer, List<List<BarSet>>> leftoverRst = BruteForceSolver.optimizeAllBar(barSets, stockLen);
+
+        // Sort desc
+        barSets.sort((a, b) -> b.len.compareTo(a.len));
+        Pair<Integer, List<List<BarSet>>> leftoverRst = BruteForceSolver.solve(barSets, stockLen);
         //        System.out.println("Leftover patterns:");
         //        for (List<BarSet> bSets : leftoverRst.snd) {
         //            System.out.println(Arrays.toString(bSets.toArray()));
@@ -105,7 +108,7 @@ public class ColumnGenerationSolver {
             List<BarSet> pattern = new ArrayList<>();
             for (int r = 0; r < nOrder; r++) {
                 if (patternMatrix[r][c] > 0f) {
-                    pattern.add(new BarSet((float) odLens[r + 1], (int) patternMatrix[r][c]));
+                    pattern.add(new BarSet(odLens[r + 1], (int) patternMatrix[r][c]));
                 }
             }
             rstMap.put(pattern, (int) curMinSol[c]);
